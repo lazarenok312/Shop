@@ -1,0 +1,379 @@
+{% load filters %}
+{% load static %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+<nav id="navigation">
+    <div class="container">
+        <div id="responsive-nav">
+            <ul class="main-nav nav navbar-nav">
+                <li class="active"><a href="{% url 'home' %}"><i class="fa fa-home"></i> Главная</a></li>
+                <li><a href="{% url 'home' %}?discounted=1"><i class="fa fa-fire"></i> Горячие предложения</a></li>
+                <li><a href="#"><i class="fa fa-th-list"></i> Категории</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            {% for category in top_categories %}
+                <div class="col-md-4 col-xs-6">
+                    <div class="shop">
+                        <div class="shop-img">
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                            {% else %}
+                                <img src="{% static 'img/default_category.png' %}" alt="{{ category.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="shop-body">
+                            <h3>{{ category.name }}</h3>
+                            <a href="{{ category.get_absolute_url }}" class="cta-btn">
+                                Смотреть товары <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                            <p>Tоваров:{{ category.product_count }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="section-title">
+                    <h3 class="title">Новые товары</h3>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="products-tabs">
+                        <div id="tab1" class="tab-pane active">
+                            <div class="products-slick" data-nav="#slick-nav-1">
+                                {% for product in new_products %}
+                                    <div class="product">
+                                        <div class="product-img">
+                                            {% if product.image %}
+                                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                                <img src="{% static 'img/default.png' %}" alt="Нет фото">
+                                            {% endif %}
+                                            <div class="product-label">
+                                                {% if product.is_new %}
+                                                    <span class="new">Новинка</span>
+                                                {% endif %}
+                                                {% if product.discount %}
+                                                    <span class="sale">-{{ product.discount }}%</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="product-body">
+                                            <p class="product-category">
+                                                {{ product.category.name|default:"Без категории" }}
+                                            </p>
+                                            <h3 class="product-name">
+                                                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                            </h3>
+                                            <h4 class="product-price">
+                                                {{ product.price|humanize_price }} ₽
+                                                {% if product.old_price %}
+                                                    <del class="product-old-price">{{ product.old_price|humanize_price }}
+                                                        ₽
+                                                    </del>
+                                                {% endif %}
+                                            </h4>
+                                            <div class="product-rating">
+                                            </div>
+                                            <div class="product-btns" data-product-id="{{ product.id }}">
+                                                <button class="add-to-wishlist-btn">
+                                                    <i class="fa fa-heart-o"></i>
+                                                    <span class="tooltipp">Добавить в избранное</span>
+                                                </button>
+                                                <button class="add-to-cart-btn">
+                                                    <i class="fa fa-shopping-cart"></i>
+                                                    <span class="tooltipp">Добавить в корзину</span>
+                                                </button>
+                                                <button class="quick-view-btn">
+                                                    <i class="fa fa-eye"></i>
+                                                    <span class="tooltipp">Быстрый просмотр</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div id="slick-nav-1" class="products-slick-nav"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div id="aside" class="col-md-3">
+                <form method="get" id="filter-form">
+                    <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+                    <input type="hidden" name="show" value="{{ request.GET.show }}">
+
+                    <div class="aside">
+                        <h3 class="aside-title"><i class="fa fa-th-list"></i> Категории</h3>
+                        <div class="checkbox-filter">
+                            {% for category in categories %}
+                                <div class="input-checkbox">
+                                    <input type="checkbox" id="category-{{ category.id }}" name="category"
+                                           value="{{ category.id }}"
+                                           {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}>
+                                    <label for="category-{{ category.id }}">
+                                        <span></span>
+                                        {{ category.name }}
+                                        <small>({{ category.products.count }})</small>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="aside">
+                        <h3 class="aside-title"><i class="fa fa-money"></i> Диапазон цены</h3>
+                        <div class="price-filter custom-price-slider">
+                            <div id="price-slider"
+                                 data-min="{{ min_price }}"
+                                 data-max="{{ max_price }}"
+                                 data-start-min="{{ selected_min_price }}"
+                                 data-start-max="{{ selected_max_price }}">
+                            </div>
+
+                            <div class="input-number price-min">
+                                <input id="price-min" name="price_min" type="number"
+                                       value="{{ selected_min_price }}" min="{{ min_price }}" max="{{ max_price }}">
+                                <span class="qty-up">+</span>
+                                <span class="qty-down">-</span>
+                            </div>
+
+                            <span>-</span>
+
+                            <div class="input-number price-max">
+                                <input id="price-max" name="price_max" type="number"
+                                       value="{{ selected_max_price }}" min="{{ min_price }}" max="{{ max_price }}">
+                                <span class="qty-up">+</span>
+                                <span class="qty-down">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top:10px; width:100%;">
+                        Применить фильтр <i class="fa fa-search"></i>
+                    </button>
+                    <a href="?sort={{ request.GET.sort }}&show={{ request.GET.show }}"
+                       class="btn btn-primary" style="margin-top:5px; width:100%; text-align:center; display:block;">
+                        Сбросить фильтры <i class="fa fa-times"></i>
+                    </a>
+                </form>
+                <br>
+                <div class="aside">
+                    <h3 class="aside-title">Топ продаж</h3>
+                    {% for product in top_products %}
+                        <div class="product-widget">
+                            <div class="product-img">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/default.png' %}" alt="No Image">
+                                {% endif %}
+                            </div>
+                            <div class="product-body">
+                                <p class="product-category">
+                                    {% if product.category %}{{ product.category.name }}{% else %}Без
+                                        категории{% endif %}
+                                </p>
+                                <h3 class="product-name">
+                                    <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                </h3>
+                                <h4 class="product-price">
+                                    {{ product.price|humanize_price }} ₽
+                                    {% if product.old_price %}
+                                        <del class="product-old-price">{{ product.old_price|humanize_price }} ₽</del>
+                                    {% endif %}
+                                </h4>
+
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>Нет топ товаров.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="store" class="col-md-9">
+                <div class="store-filter clearfix">
+                    <div class="store-sort d-flex gap-3 align-items-center">
+                        <label class="custom-select-label">
+                            Сортировка:
+                            <select class="custom-select" id="sort-select">
+                                <option value="popular"
+                                        {% if request.GET.sort == 'popular' or not request.GET.sort %}selected{% endif %}>
+                                    Популярные
+                                </option>
+                                <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>
+                                    Цена: по возрастанию
+                                </option>
+                                <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>
+                                    Цена: по убыванию
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="custom-select-label">
+                            Показать:
+                            <select class="custom-select" id="show-select">
+                                <option value="20" {% if request.GET.show == '20' %}selected{% endif %}>20</option>
+                                <option value="50" {% if request.GET.show == '50' %}selected{% endif %}>50</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    {% for product in products %}
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="product" data-description="{{ product.description }}">
+                                <div class="product-img">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        <img src="{% static 'img/default.png' %}" alt="No Image">
+                                    {% endif %}
+                                    <div class="product-label">
+                                        {% if product.is_new %}
+                                            <span class="new">Новинка</span>
+                                        {% endif %}
+                                        {% if product.discount %}
+                                            <span class="sale">-{{ product.discount }}%</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="product-body">
+                                    <p class="product-category">
+                                        {% if product.category %}
+                                            {{ product.category.name }}
+                                        {% else %}
+                                            Без категории
+                                        {% endif %}
+                                    </p>
+                                    <h3 class="product-name">
+                                        <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                    </h3>
+                                    <h4 class="product-price">
+                                        {{ product.price|humanize_price }} ₽
+                                        {% if product.old_price %}
+                                            <del class="product-old-price">{{ product.old_price|humanize_price }} ₽
+                                            </del>
+                                        {% endif %}
+                                    </h4>
+                                    <div class="product-rating">
+                                    </div>
+                                    <div class="product-btns" data-product-id="{{ product.id }}">
+                                        <button class="add-to-wishlist-btn">
+                                            <i class="fa fa-heart-o"></i>
+                                            <span class="tooltipp">Добавить в избранное</span>
+                                        </button>
+                                        <button class="add-to-cart-btn">
+                                            <i class="fa fa-shopping-cart"></i>
+                                            <span class="tooltipp">Добавить в корзину</span>
+                                        </button>
+                                        <button class="quick-view-btn">
+                                            <i class="fa fa-eye"></i>
+                                            <span class="tooltipp">Быстрый просмотр</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    {% empty %}
+                        <p>Товары не найдены.</p>
+                    {% endfor %}
+                </div>
+                <div id="product-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeProductModal()">&times;</span>
+                        <h2 id="product-name"></h2>
+                        <div class="image-carousel">
+                            <img id="product-image" src="" alt="">
+                        </div>
+                        <table id="product-info">
+                            <tr>
+                                <td>Описание:</td>
+                                <td id="product-description"></td>
+                            </tr>
+                            <tr>
+                                <td>Категория:</td>
+                                <td id="product-category"></td>
+                            </tr>
+                            <tr>
+                                <td>Цена:</td>
+                                <td id="product-price"></td>
+                            </tr>
+
+                            <tr>
+                                <td>Старая цена:</td>
+                                <td id="product-old-price"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="store-filter clearfix">
+                    <span class="store-qty">Показано {{ products|length }} продуктов</span>
+                    {% if is_paginated %}
+                        <ul class="store-pagination">
+                            {% if page_obj.has_previous %}
+                                <li><a href="?page={{ page_obj.previous_page_number }}"><i class="fa fa-angle-left"></i></a>
+                                </li>
+                            {% endif %}
+                            {% for num in paginator.page_range %}
+                                <li {% if page_obj.number == num %}class="active"{% endif %}><a
+                                        href="?page={{ num }}">{{ num }}</a></li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li><a href="?page={{ page_obj.next_page_number }}"><i
+                                        class="fa fa-angle-right"></i></a></li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'partials/footer.html' %}
+<script>
+    var priceSlider = document.getElementById('price-slider');
+    if (priceSlider) {
+        var min = parseFloat(priceSlider.dataset.min);
+        var max = parseFloat(priceSlider.dataset.max);
+        var startMin = parseFloat(priceSlider.dataset.startMin);
+        var startMax = parseFloat(priceSlider.dataset.startMax);
+
+        noUiSlider.create(priceSlider, {
+            start: [startMin, startMax],
+            connect: true,
+            step: 1,
+            range: {'min': min, 'max': max},
+            behaviour: 'tap-drag'
+        });
+
+        var priceInputMin = document.getElementById('price-min');
+        var priceInputMax = document.getElementById('price-max');
+
+        priceSlider.noUiSlider.on('update', function (values, handle) {
+            var value = Math.round(values[handle]);
+            handle ? priceInputMax.value = value : priceInputMin.value = value;
+        });
+    }
+</script>

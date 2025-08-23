@@ -1,0 +1,163 @@
+{% load static %}
+{% load filters %}
+<header>
+    <div id="top-header">
+        <div class="container">
+            <ul class="header-links pull-left">
+                <li><a href="#"><i class="fa fa-phone"></i> +021-95-51-84</a></li>
+                <li><a href="#"><i class="fa fa-envelope-o"></i> email@email.com</a></li>
+            </ul>
+            <ul class="header-links pull-right">
+                <li><a href="#"><i class="fa fa-ruble"></i>RUB</a></li>
+                <li class="nav-item dropdown">
+                    {% if user.is_authenticated %}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="accountDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-user-circle me-1" style="font-size:1.2rem;"></i>
+                            <span class="fw-semibold">{{ user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="accountDropdown">
+                            {% if user.profile %}
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                       href="{% url 'profile_detail' user.profile.id %}">
+                                        <i class="fa fa-id-badge me-2 text-primary"></i> Профиль
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- Новый пункт Заказы -->
+                            {% if user.is_staff %}
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                       href="{% url 'admin_orders' %}">
+                                        <i class="fa fa-shopping-cart me-2 text-warning"></i> Заказы (Админ)
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                       href="{% url 'my_orders' %}">
+                                        <i class="fa fa-shopping-cart me-2 text-success"></i> Мои заказы
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center text-danger"
+                                   href="{% url 'logout' %}">
+                                    <i class="fa fa-sign-out me-2"></i> Выход
+                                </a>
+                            </li>
+                        </ul>
+                    {% else %}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="accountDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-user-circle me-1" style="font-size:1.2rem;"></i> Аккаунт
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="accountDropdown">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center text-success"
+                                   href="{% url 'login' %}">
+                                    <i class="fa fa-user-circle me-2"></i> Вход
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center text-primary"
+                                   href="{% url 'register' %}">
+                                    <i class="fa fa-user-plus me-2"></i> Регистрация
+                                </a>
+                            </li>
+                        </ul>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="header">
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="header-logo">
+                        <a href="{% url 'home' %}" class="logo">
+                            <img src="{% static 'img/logo2.png' %}" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="header-search">
+                        <form method="get" id="search-form" action="{% url 'home' %}">
+                            <select class="input-select" name="category" id="search-category">
+                                <option value="0">Все категории</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}"
+                                            {% if cat.id|stringformat:"s" == selected_category %}selected{% endif %}>
+                                        {{ cat.name|truncatechars:25 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <input class="input" type="text" name="q" placeholder="Поиск"
+                                   value="{{ search_query }}" id="search-input" autocomplete="off">
+                            <button class="search-btn" type="submit">Поиск <i class="fa fa-search"></i></button>
+                        </form>
+                        <div id="search-suggestions" class="search-suggestions"></div>
+                    </div>
+                </div>
+                <div class="col-md-3 clearfix">
+                    <div class="header-ctn">
+                        <div>
+                            <a href="{% url 'cart_view' %}">
+                                <i class="fa fa-heart-o"></i>
+                                <span>Избранное</span>
+                                <div class="qty">2</div>
+                            </a>
+                        </div>
+                        <div class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                <i class="fa fa-shopping-cart"></i>
+                                <span>Корзина</span>
+                                <div class="qty">{{ cart_qty }}</div>
+                            </a>
+                            <div class="cart-dropdown">
+                                <div class="cart-list">
+                                    {% for item in cart_items %}
+                                        <div class="product-widget">
+                                            <div class="product-img">
+                                                <img src="{{ item.product.image.url|default:'/static/img/product01.png' }}"
+                                                     alt="">
+                                            </div>
+                                            <div class="product-body">
+                                                <h3 class="product-name"><a href="#">{{ item.product.name }}</a></h3>
+                                                <h4 class="product-price"><span
+                                                        class="qty">{{ item.quantity }}x</span> {{ item.product.price|humanize_price }}
+                                                    ₽</h4>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p>Корзина пуста</p>
+                                    {% endfor %}
+                                </div>
+                                <div class="cart-summary">
+                                    <small>{{ cart_qty }} товара выбрано</small>
+                                    <h5>Итого: {{ cart_total|humanize_price }} ₽</h5>
+                                </div>
+                                <div class="cart-btns">
+                                    <a href="{% url 'cart_view' %}">В корзину</a>
+                                    <a href="{% url 'cart_view' %}">Оформить <i
+                                            class="fa fa-arrow-circle-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-toggle">
+                            <a href="#">
+                                <i class="fa fa-bars"></i>
+                                <span>Меню</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

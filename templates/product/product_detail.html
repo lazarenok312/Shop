@@ -1,0 +1,342 @@
+{% load static %}
+{% load filters %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="breadcrumb-header">{{ product.name }}</h3>
+                <ul class="breadcrumb-tree">
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li class="active">информация</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2">
+                <div id="thumbs" class="d-flex flex-column align-items-center">
+                    {% for image in product.images.all %}
+                        <img src="{{ image.image.url }}"
+                             class="img-thumbnail mb-2 thumb {% if forloop.first %}active{% endif %}"
+                             data-target="#mainImage"
+                             data-img="{{ image.image.url }}"
+                             alt="{{ product.name }}">
+                    {% empty %}
+                        <img src="{% static 'img/no-image.png' %}"
+                             class="img-thumbnail mb-2 active"
+                             data-target="#mainImage"
+                             data-img="{% static 'img/no-image.png' %}"
+                             alt="Нет фото">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="main-image text-center">
+                    {% if product.images.first %}
+                        <img id="mainImage" src="{{ product.images.first.image.url }}" class="img-fluid"
+                             alt="{{ product.name }}">
+                    {% else %}
+                        <img id="mainImage" src="{% static 'img/no-image.png' %}" class="img-fluid" alt="Нет фото">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="product-details">
+                    <h2 class="product-name">{{ product.name }}</h2>
+                    <h3 class="product-price">
+                        {{ product.price|humanize_price }} ₽
+                        {% if product.old_price %}
+                            <del class="product-old-price">${{ product.old_price|humanize_price }}</del>
+                        {% endif %}
+                    </h3>
+
+                    {% if product.is_new %}
+                        <span class="text-success">В наличии</span>
+                    {% else %}
+                        <span class="text-danger">Нет в наличии</span>
+                    {% endif %}
+
+                    <br>
+                    <strong>Категория:</strong> {{ product.category.name }}<br>
+                    <strong>Бренд:</strong>
+                    {% if product.brand %}
+                        {{ product.brand.name }}
+                    {% else %}
+                        не указан
+                    {% endif %}
+                    <br>
+                    <strong>Комплектация:</strong>
+                    {% if product.complectation %}
+                        {{ product.complectation }}
+                    {% else %}
+                        —
+                    {% endif %}
+                    <br>
+                    <strong>Дата добавления:</strong> {{ product.created_at|date:"d.m.Y" }}
+                    <br>
+
+                    <div class="add-to-cart" data-product-id="{{ product.id }}" style="margin-top: 20px">
+                        <div class="qty-label">
+                            Кол-во
+                            <div class="input-number">
+                                <input type="number" class="cart-qty" value="1" min="1">
+                                <span class="qty-up">+</span>
+                                <span class="qty-down">-</span>
+                            </div>
+                        </div>
+                        <button class="add-to-cart-btn btn btn-danger mt-3">
+                            <i class="fa fa-shopping-cart"></i> В корзину
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div id="product-tab">
+                <ul class="tab-nav">
+                    <li class="active"><a data-toggle="tab" href="#tab1">Описание</a></li>
+                    <li><a data-toggle="tab" href="#tab2">Детали</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="tab1" class="tab-pane fade in active">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p>{{ product.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab2" class="tab-pane fade in">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
+                                    incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                                    exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+                                    irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+                                    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+                                    deserunt mollit anim id est laborum.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <!-- container -->
+    <div class="container">
+        <!-- row -->
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="section-title text-center">
+                    <h3 class="title">Похожие товары</h3>
+                </div>
+            </div>
+
+            <!-- product -->
+            <div class="col-md-3 col-xs-6">
+                <div class="product">
+                    <div class="product-img">
+                        <img src="./img/product01.png" alt="">
+                        <div class="product-label">
+                            <span class="sale">-30%</span>
+                        </div>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-category">Category</p>
+                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
+                        <h4 class="product-price">$980.00
+                            <del class="product-old-price">$990.00</del>
+                        </h4>
+                        <div class="product-rating">
+                        </div>
+                        <div class="product-btns">
+                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
+                            </button>
+                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
+                            </button>
+                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /product -->
+
+            <!-- product -->
+            <div class="col-md-3 col-xs-6">
+                <div class="product">
+                    <div class="product-img">
+                        <img src="./img/product02.png" alt="">
+                        <div class="product-label">
+                            <span class="new">NEW</span>
+                        </div>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-category">Category</p>
+                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
+                        <h4 class="product-price">$980.00
+                            <del class="product-old-price">$990.00</del>
+                        </h4>
+                        <div class="product-rating">
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                        </div>
+                        <div class="product-btns">
+                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
+                            </button>
+                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
+                            </button>
+                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /product -->
+
+            <div class="clearfix visible-sm visible-xs"></div>
+
+            <!-- product -->
+            <div class="col-md-3 col-xs-6">
+                <div class="product">
+                    <div class="product-img">
+                        <img src="./img/product03.png" alt="">
+                    </div>
+                    <div class="product-body">
+                        <p class="product-category">Category</p>
+                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
+                        <h4 class="product-price">$980.00
+                            <del class="product-old-price">$990.00</del>
+                        </h4>
+                        <div class="product-rating">
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star"></i>
+                            <i class="fa fa-star-o"></i>
+                        </div>
+                        <div class="product-btns">
+                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
+                            </button>
+                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
+                            </button>
+                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /product -->
+
+            <!-- product -->
+            <div class="col-md-3 col-xs-6">
+                <div class="product">
+                    <div class="product-img">
+                        <img src="./img/product04.png" alt="">
+                    </div>
+                    <div class="product-body">
+                        <p class="product-category">Category</p>
+                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
+                        <h4 class="product-price">$980.00
+                            <del class="product-old-price">$990.00</del>
+                        </h4>
+                        <div class="product-rating">
+                        </div>
+                        <div class="product-btns">
+                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
+                            </button>
+                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
+                            </button>
+                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /product -->
+
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+</div>
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.querySelectorAll('.add-to-cart').forEach(block => {
+        const btn = block.querySelector('.add-to-cart-btn');
+        const qtyInput = block.querySelector('.cart-qty');
+        const productId = block.dataset.productId;
+
+        block.querySelector('.qty-up').addEventListener('click', () => {
+            qtyInput.value = parseInt(qtyInput.value) + 1;
+        });
+
+        block.querySelector('.qty-down').addEventListener('click', () => {
+            if (parseInt(qtyInput.value) > 1) {
+                qtyInput.value = parseInt(qtyInput.value) - 1;
+            }
+        });
+
+        btn.addEventListener('click', () => {
+            const qty = qtyInput.value;
+
+            fetch(`/cart/add/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({quantity: qty})
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector('#cart-qty').textContent = data.cart_qty;
+                        showNotification("Товар добавлен в корзину!");
+                    } else {
+                        showNotification("Ошибка при добавлении!", "error");
+                    }
+                });
+        });
+    });
+</script>
+<script>
+    document.querySelectorAll('.thumb').forEach(thumb => {
+        thumb.addEventListener('click', function () {
+            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('mainImage').src = this.dataset.img;
+        });
+    });
+</script>
+{% include 'partials/footer.html' %}

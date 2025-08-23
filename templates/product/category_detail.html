@@ -1,0 +1,113 @@
+{% load static %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+<nav id="navigation">
+    <div class="container">
+        <div id="responsive-nav">
+            <ul class="main-nav nav navbar-nav">
+                <li><a href="{% url 'home' %}"><i class="fa fa-home"></i> Главная</a></li>
+                <li><a href="#"><i class="fa fa-fire"></i> Горячие предложения</a></li>
+                <li class="active"><a href="#"><i class="fa fa-th-list"></i> Категории</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="section">
+    <div class="container">
+        <h2 class="mb-4">{{ category.name }}</h2>
+
+        {% if has_products %}
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="products-tabs">
+                        <!-- tab -->
+                        <div id="tab1" class="tab-pane active">
+                            <div class="products-slick" data-nav="#slick-nav-1">
+                                <!-- products loop -->
+                               {% for product in products %}
+                                    <div class="product">
+                                        <div class="product-img">
+                                            {% if product.image %}
+                                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                                <img src="{% static 'img/default.png' %}" alt="Нет фото">
+                                            {% endif %}
+                                            <<div class="product-label">
+                                                {% if product.is_new %}
+                                                    <span class="new">Новинка</span>
+                                                {% endif %}
+                                                {% if product.discount %}
+                                                    <span class="sale">-{{ product.discount }}%</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="product-body">
+                                            <p class="product-category">
+                                                {{ product.category.name|default:"Без категории" }}
+                                            </p>
+                                            <h3 class="product-name">
+                                                <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+                                            </h3>
+                                            <h4 class="product-price">
+                                                {{ product.price }} ₽
+                                                {% if product.old_price %}
+                                                    <del class="product-old-price">{{ product.old_price }} ₽</del>
+                                                {% endif %}
+                                            </h4>
+                                            <div class="product-rating">
+                                            </div>
+                                            <div class="product-btns" data-product-id="{{ product.id }}">
+                                        <button class="add-to-wishlist-btn">
+                                            <i class="fa fa-heart-o"></i>
+                                            <span class="tooltipp">Добавить в избранное</span>
+                                        </button>
+                                        <button class="add-to-cart-btn">
+                                            <i class="fa fa-shopping-cart"></i>
+                                            <span class="tooltipp">Добавить в корзину</span>
+                                        </button>
+                                        <button class="quick-view-btn">
+                                            <i class="fa fa-eye"></i>
+                                            <span class="tooltipp">Быстрый просмотр</span>
+                                        </button>
+                                    </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                <!-- /products loop -->
+                            </div>
+                            <div id="slick-nav-1" class="products-slick-nav"></div>
+                        </div>
+                        <!-- /tab -->
+                    </div>
+                </div>
+            </div>
+
+            {% if is_paginated %}
+                <div class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                            </li>
+                        {% endif %}
+                        {% for num in paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <p>В этой категории пока нет продуктов.</p>
+        {% endif %}
+    </div>
+</div>
+{% include 'partials/footer.html' %}

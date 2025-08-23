@@ -1,0 +1,93 @@
+{% load static %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="breadcrumb-header">Регистрация аккаунта</h3>
+                <ul class="breadcrumb-tree">
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li class="active">Регистрация</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="register-box">
+                    <h4 class="text-center mb-4">Создать аккаунт</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-register w-100">Зарегистрироваться</button>
+                    </form>
+                    <p class="text-center mt-3">
+                        Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/footer.html' %}
+
+<style>
+.register-box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+.register-box h4 {
+    font-weight: 600;
+    color: #333;
+}
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #444;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-group input:focus {
+    border-color: #40c9c6; /* бирюзовый акцент */
+    box-shadow: 0 0 5px rgba(64, 201, 198, 0.3);
+    outline: none;
+}
+.btn-register {
+    background: #40c9c6;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    transition: 0.3s;
+}
+.btn-register:hover {
+    background: #36b4b2;
+}
+</style>

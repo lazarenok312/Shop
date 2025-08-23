@@ -1,0 +1,100 @@
+{% load static %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="breadcrumb-header">Вход в аккаунт</h3>
+                <ul class="breadcrumb-tree">
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li class="active">Вход</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body p-4">
+                    <h4 class="text-center mb-4" style="color:#009688;">Вход</h4>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="form-group mb-3">
+                            <label for="id_username" class="form-label">Имя пользователя</label>
+                            <input type="text" name="username" id="id_username" class="form-control rounded-3" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="id_password" class="form-label">Пароль</label>
+                            <input type="password" name="password" id="id_password" class="form-control rounded-3" required>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+{#                            <a href="{% url 'password_reset' %}" class="small text-muted">Забыли пароль?</a>#}
+                        </div>
+
+                        <button type="submit" class="btn w-100 py-2 rounded-3"
+                                style="background-color:#009688; color:white;">
+                            Войти
+                        </button>
+                    </form>
+
+                    <p class="text-center mt-3 mb-0">
+                        Нет аккаунта? <a href="{% url 'register' %}" style="color:#009688;">Зарегистрироваться</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/footer.html' %}
+<style>
+.register-box {
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+.register-box h4 {
+    font-weight: 600;
+    color: #333;
+}
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: #444;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-group input:focus {
+    border-color: #40c9c6; /* бирюзовый акцент */
+    box-shadow: 0 0 5px rgba(64, 201, 198, 0.3);
+    outline: none;
+}
+.btn-register {
+    background: #40c9c6;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    transition: 0.3s;
+}
+.btn-register:hover {
+    background: #36b4b2;
+}
+</style>

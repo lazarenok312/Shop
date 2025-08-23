@@ -1,0 +1,119 @@
+{% load static %}
+<footer id="footer">
+    <div class="section">
+        <div class="container">
+            <div class="row">
+
+                <!-- О нас -->
+                <div class="col-md-3 col-xs-6">
+                    <div class="footer">
+                        <h3 class="footer-title">О нас</h3>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut.</p>
+                        <ul class="footer-links list-unstyled">
+                            <li><a href="#"><i class="fa fa-map-marker me-2"></i>Наш адрес</a></li>
+                            <li><a href="#"><i class="fa fa-phone me-2"></i>Телефон</a></li>
+                            <li><a href="#"><i class="fa fa-envelope-o me-2"></i>Email</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Категории -->
+                <div class="col-md-3 col-xs-6">
+                    <div class="footer">
+                        <h3 class="footer-title">Категории</h3>
+                        <ul class="footer-links list-unstyled">
+                            {% for category in top_categories %}
+                                <li><a href="{% url 'category_detail' category.id %}"><i class="fa fa-tag me-2"></i>{{ category.name }}</a></li>
+                            {% empty %}
+                                <li><i class="fa fa-ban me-2"></i>Нет категорий</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="clearfix visible-xs"></div>
+
+                <!-- Информация -->
+                <div class="col-md-3 col-xs-6">
+                    <div class="footer">
+                        <h3 class="footer-title">Информация</h3>
+                        <ul class="footer-links list-unstyled">
+                            <li><a href="#"><i class="fa fa-info-circle me-2"></i>О нас</a></li>
+                            <li><a href="#"><i class="fa fa-envelope me-2"></i>Контакты</a></li>
+                            <li><a href="#"><i class="fa fa-shield me-2"></i>Политика конфиденциальности</a></li>
+                            <li><a href="#"><i class="fa fa-refresh me-2"></i>Возврат и обмен</a></li>
+                            <li><a href="#"><i class="fa fa-file-text me-2"></i>Условия использования</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Сервисы -->
+                <div class="col-md-3 col-xs-6">
+                    <div class="footer">
+                        <h3 class="footer-title">Сервисы</h3>
+                        <ul class="footer-links list-unstyled">
+                            {% if user.is_authenticated %}
+                                <li>
+                                    <a class="d-flex align-items-center text-primary" href="{% url 'profile_detail' user.profile.id %}">
+                                        <i class="fa fa-id-badge me-2"></i>Мой профиль
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a class="d-flex align-items-center text-success" href="{% url 'login' %}">
+                                        <i class="fa fa-user-circle me-2"></i>Вход
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% if user.is_staff %}
+                                <li>
+                                    <a class="d-flex align-items-center text-warning" href="{% url 'admin_orders' %}">
+                                        <i class="fa fa-shopping-cart me-2"></i>Заказы (Админ)
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a class="d-flex align-items-center text-success" href="{% url 'my_orders' %}">
+                                        <i class="fa fa-shopping-cart me-2"></i>Мои заказы
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li>
+                                <a class="d-flex align-items-center text-info" href="{% url 'cart_view' %}">
+                                    <i class="fa fa-shopping-basket me-2"></i>Корзина
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="d-flex align-items-center text-danger" href="{% url 'cart_view' %}">
+                                    <i class="fa fa-heart me-2"></i>Избранное
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="d-flex align-items-center text-secondary" href="#">
+                                    <i class="fa fa-truck me-2"></i>Отследить заказ
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="d-flex align-items-center text-muted" href="#">
+                                    <i class="fa fa-question-circle me-2"></i>Помощь
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</footer>
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/slick.min.js' %}"></script>
+<script src="{% static 'js/nouislider.min.js' %}"></script>
+<script src="{% static 'js/jquery.zoom.min.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>

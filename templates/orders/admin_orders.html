@@ -1,0 +1,172 @@
+{% load static %}
+{% load filters %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+
+<style>
+    .table-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-container table thead {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(90deg, #5abab4, #309189);
+        color: white;
+        z-index: 10;
+    }
+
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-container th, .table-container td {
+        padding: 10px 15px;
+        text-align: center;
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .status-new {
+        background-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+
+    .status-accepted {
+        background-color: #28a745;
+        color: white;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+
+    .status-completed {
+        background-color: #0d6efd;
+        color: white;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+
+    .status-canceled {
+        background-color: #dc3545;
+        color: white;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+
+    /* Кнопки одинакового размера */
+    .order-actions .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .table-container tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    @media (max-width: 768px) {
+        .table-container table, .table-container tbody, .table-container tr, .table-container td, .table-container th {
+            display: block;
+        }
+
+        .table-container thead {
+            display: none;
+        }
+
+        .table-container td {
+            text-align: right;
+            position: relative;
+            padding-left: 50%;
+        }
+
+        .table-container td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 15px;
+            width: calc(50% - 20px);
+            font-weight: bold;
+            text-align: left;
+        }
+    }
+</style>
+
+
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="breadcrumb-header">Все заказы</h3>
+                <ul class="breadcrumb-tree">
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li class="active">Заказы</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="table-responsive">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ФИО</th>
+                            <th>Телефон</th>
+                            <th>Товары</th>
+                            <th>Общая сумма</th>
+                            <th>Метод оплаты</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.full_name }}</td>
+                                <td>{{ order.phone }}</td>
+                                <td>
+                                    {% for item in order.items.all %}
+                                        {{ item.name }} x {{ item.quantity }}<br>
+                                    {% endfor %}
+                                </td>
+                                <td><strong>{{ order.total_price|humanize_price }} ₽</strong></td>
+                                <td>{{ order.get_payment_method_display }}</td>
+                                <td>
+                                    <span class="status-{{ order.status }}">{{ order.get_status_display }}</span>
+                                </td>
+                                <td class="order-actions">
+                                    {% if order.status == 'new' %}
+                                        <a href="{% url 'process_order' order.id 'accept' %}"
+                                           class="btn btn-sm btn-success">Принять</a>
+                                        <a href="{% url 'process_order' order.id 'cancel' %}"
+                                           class="btn btn-sm btn-danger">Отменить</a>
+                                    {% elif order.status == 'accepted' %}
+                                        <a href="{% url 'process_order' order.id 'complete' %}"
+                                           class="btn btn-sm btn-primary">Завершить</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/footer.html' %}

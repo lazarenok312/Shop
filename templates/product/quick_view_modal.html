@@ -1,0 +1,29 @@
+<div class="modal-header">
+    <h5 class="modal-title">{{ product.name }}</h5>
+    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+            {% else %}
+                <img src="{% static 'img/default.png' %}" class="img-fluid" alt="No Image">
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <p>Категория: {{ product.category.name }}</p>
+            <p>Цена: ₽{{ product.price }}</p>
+            {% if product.old_price %}
+                <p>Старая цена: <del>₽{{ product.old_price }}</del></p>
+            {% endif %}
+            <p>{{ product.description|default:"Нет описания" }}</p>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary add-to-cart-btn" data-product-id="{{ product.id }}">
+        <i class="fa fa-shopping-cart"></i> В корзину
+    </button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+</div>

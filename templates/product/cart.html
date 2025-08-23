@@ -1,0 +1,293 @@
+{% load static %}
+{% load filters %}
+{% include 'base.html' %}
+{% include 'partials/navbar.html' %}
+
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="breadcrumb-header">Корзина</h3>
+                <ul class="breadcrumb-tree">
+                    <li><a href="{% url 'home' %}">Главная</a></li>
+                    <li class="active">Корзина</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% if cart_items %}
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <!-- Корзина и заказ -->
+            <div class="col-md-7">
+                <div class="section-title text-center">
+                    <h3 class="title"><i class="fa fa-trash"></i> Корзина</h3>
+                </div>
+
+                <div id="cart-items" class="table-responsive">
+                    {% if cart_items %}
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th scope="col">Товар</th>
+                                <th scope="col">Цена</th>
+                                <th scope="col">Количество</th>
+                                <th scope="col">Стоимость</th>
+                                <th scope="col"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in cart_items %}
+                                <tr data-item-id="{{ item.product.id }}">
+                                    <td class="d-flex align-items-center">
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                                             style="height:60px; width:auto;" class="me-2 border rounded">
+                                        <div>
+                                            <a href="{{ item.product.get_absolute_url }}"
+                                               class="fw-bold">{{ item.product.name }}</a><br>
+                                            <small class="text-muted">{{ item.product.description|truncatewords:10 }}</small>
+                                        </div>
+                                    </td>
+
+                                    <td>{{ item.product.price|humanize_price }} ₽</td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <button class="btn btn-sm btn-outline-secondary me-1 btn-decrease">−
+                                            </button>
+                                            <span class="mx-2 item-quantity">{{ item.quantity }}</span>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1 btn-increase">+
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    <td class="item-total">{{ item.total_price|humanize_price }} ₽</td>
+
+                                    <td>
+                                        <form method="post" action="{% url 'remove_cart_item' item.product.id %}"
+                                              style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger remove-item">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Корзина пуста</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Итог и оплата -->
+            <div class="col-md-5 order-details">
+                <div class="section-title text-center">
+                    <h3 class="title"><i class="fa fa-credit-card-alt" aria-hidden="true"></i> Ваш заказ</h3>
+                </div>
+                <div class="order-summary">
+                    <div class="order-col">
+                        <div><strong>Товар</strong></div>
+                        <div><strong>Итого</strong></div>
+                    </div>
+
+                    {% for item in cart_items %}
+                        <div class="order-col" data-item-id="{{ item.product.id }}">
+                            <div>{{ item.quantity }}x {{ item.product.name }}</div>
+                            <div>{{ item.total_price|humanize_price }} ₽</div>
+                        </div>
+                    {% endfor %}
+
+                    <div class="order-col">
+                        <div>Доставка</div>
+                        <div><strong>Договорная</strong></div>
+                    </div>
+
+                    <div class="order-col mt-3">
+                        <div><strong>Итого</strong></div>
+                        <div>
+                            <strong class="order-total">
+                                <strong class="order-total">{{ cart_total|humanize_price }} ₽</strong>
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <button type="button" class="primary-btn order-submit mt-3 w-100"
+                        onclick="openCheckoutModal()">
+                    Оформить заказ
+                </button>
+
+                <!-- Модалка -->
+                <div id="checkoutModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeCheckoutModal()">&times;</span>
+                        <h2>Оформление заказа</h2>
+
+                        <form method="post" action="{% url 'create_order' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">ФИО</label>
+                                <input type="text" name="full_name" id="full_name" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Телефон</label>
+                                <input type="text" name="phone" id="phone" class="form-control" required>
+                            </div>
+
+                            <div class="payment-method">
+                                <div class="input-radio mb-2">
+                                    <input type="radio" name="payment_method" id="modal-payment-1" value="bank" checked>
+                                    <label for="modal-payment-1"><span></span> Прямой банковский перевод</label>
+                                </div>
+                                <div class="input-radio mb-2">
+                                    <input type="radio" name="payment_method" id="modal-payment-2" value="check">
+                                    <label for="modal-payment-2"><span></span> Оплата чеком</label>
+                                </div>
+                                <div class="input-radio mb-2">
+                                    <input type="radio" name="payment_method" id="modal-payment-3" value="paypal">
+                                    <label for="modal-payment-3"><span></span> PayPal</label>
+                                </div>
+                            </div>
+                                                        <button type="submit" class="btn btn-primary w-100 mt-3">Подтвердить заказ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if wishlist_items %}
+    <div class="section">
+        <div class="container">
+            <div class="row">
+                <div class="section-title text-center mt-5">
+                    <h3 class="title"><i class="fa fa-heart"></i> Избранное</h3>
+                </div>
+                <div id="wishlist-items" class="table-responsive">
+                    {% if wishlist_items %}
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th scope="col">Товар</th>
+                                <th scope="col">Цена</th>
+                                <th scope="col"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in wishlist_items %}
+                                <tr data-item-id="{{ item.id }}">
+                                    <td class="d-flex align-items-center">
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}"
+                                             style="height:60px; width:auto;" class="me-2 border rounded">
+                                        <div>
+                                            <a href="{{ item.get_absolute_url }}"
+                                               class="fw-bold">{{ item.name }}</a><br>
+                                            <small class="text-muted">{{ item.description|truncatewords:10 }}</small>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.price|humanize_price }} ₽</td>
+                                    <td>
+                                        <form method="post" action="{% url 'remove_from_wishlist' item.id %}"
+                                              style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger remove-item">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    function openCheckoutModal() {
+        document.getElementById("checkoutModal").style.display = "block";
+    }
+
+    function closeCheckoutModal() {
+        document.getElementById("checkoutModal").style.display = "none";
+    }
+
+    // закрытие при клике вне модалки
+    window.onclick = function (event) {
+        let modal = document.getElementById("checkoutModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function formatRUB(value) {
+        const n = Number(value);
+        if (isNaN(n)) return value;
+        return n.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // Делегирование всех кликов в корзине
+    document.addEventListener('click', function (e) {
+        const incBtn = e.target.closest('.btn-increase');
+        const decBtn = e.target.closest('.btn-decrease');
+
+        // === Увеличить/уменьшить количество ===
+        if (incBtn || decBtn) {
+            const row = (incBtn || decBtn).closest('tr');
+            const productId = row.dataset.itemId;
+            const action = incBtn ? 'increase' : 'decrease';
+
+            fetch(`/cart/update/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({action})
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (data.removed) {
+                            row.remove();
+                        } else {
+                            row.querySelector('.item-quantity').textContent = data.quantity;
+                            row.querySelector('.item-total').textContent = '₽' + formatRUB(data.item_total);
+                        }
+                        document.querySelector('.order-total').textContent = '₽' + formatRUB(data.cart_total);
+                    }
+                });
+            return;
+        }
+    });
+</script>
+{% include 'partials/footer.html' %}

@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Витрина Ритейл</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'css/slick.css' %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'css/slick-theme.css' %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'css/nouislider.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/style.css' %}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.7.0/distribute/nouislider.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@14.7.0/distribute/nouislider.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<div id="notification" class="notification"></div>
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('.messages .alert');
+            alerts.forEach(alert => {
+                // Показываем плавно
+                alert.style.opacity = 1;
+                alert.style.transition = 'opacity 0.5s';
+
+                setTimeout(() => {
+                    alert.style.opacity = 0;
+                    setTimeout(() => alert.remove(), 500); // окончательно убираем из DOM
+                }, 5000);
+            });
+        });
+    </script>
+{% endif %}
+
+<script>
+    function showNotification(message, type = "success") {
+        const notif = document.getElementById("notification");
+        notif.textContent = message;
+        notif.style.background = type === "error" ? "#dc3545" : "#28a745";
+        notif.style.display = "block";
+        notif.style.opacity = "1";
+
+        setTimeout(() => {
+            notif.style.opacity = "0";
+            setTimeout(() => notif.style.display = "none", 300);
+        }, 2000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(cookie => {
+                const c = cookie.trim();
+                if (c.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(c.split('=')[1]);
+                }
+            });
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        document.querySelectorAll('.add-to-wishlist-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productId = this.closest('.product-btns').dataset.productId;
+                fetch(`/wishlist/add/${productId}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.querySelector('#wishlist-qty').textContent = data.wishlist_qty;
+                            showNotification(data.action === 'added' ? "Товар добавлен в избранное!" : "Товар удалён из избранного!", data.action === 'added' ? "success" : "error");
+                        } else {
+                            showNotification(data.error || "Ошибка!", "error");
+                        }
+                    });
+            });
+        });
+
+        // Добавить в корзину
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productId = this.closest('.product-btns').dataset.productId;
+                fetch(`/cart/add/${productId}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.querySelector('#cart-qty').textContent = data.cart_qty;
+                            showNotification("Товар добавлен в корзину!");
+                        } else {
+                            showNotification(data.error || "Ошибка!", "error");
+                        }
+                    });
+            });
+        });
+
+        // Быстрый просмотр
+        document.querySelectorAll('.quick-view-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productId = this.closest('.product-btns').dataset.productId;
+                fetch(`/product/quick-view/${productId}/`)
+                    .then(res => res.text())
+                    .then(html => {
+                        const modal = document.getElementById('quick-view-modal');
+                        modal.querySelector('.modal-content').innerHTML = html;
+                        new bootstrap.Modal(modal).show();
+                    });
+            });
+        });
+
+        // Удаление (делегирование)
+        document.addEventListener('click', function (e) {
+            // Удалить из корзины
+            const cartBtn = e.target.closest('.remove-cart-item');
+            if (cartBtn) {
+                const productId = cartBtn.dataset.productId;
+                fetch(`/cart/remove/${productId}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': getCookie('csrftoken')}
+                })
+                    .then(res => res.text())
+                    .then(html => {
+                        document.querySelector('#cart-items').innerHTML = html;
+                        document.querySelector('#cart-qty').textContent = document.querySelectorAll('#cart-items .product-widget').length;
+                    });
+            }
+
+            // Удалить из избранного
+            const wishlistBtn = e.target.closest('.remove-wishlist-item');
+            if (wishlistBtn) {
+                const productId = wishlistBtn.closest('.product-widget').dataset.productId;
+                fetch(`/wishlist/remove/${productId}/`, {
+                    method: 'POST',
+                    headers: {'X-CSRFToken': getCookie('csrftoken')}
+                })
+                    .then(res => res.text())
+                    .then(html => {
+                        document.querySelector('#wishlist-items').innerHTML = html;
+                        document.querySelector('#wishlist-qty').textContent = document.querySelectorAll('#wishlist-items .product-widget').length;
+                    });
+            }
+        });
+
+        // Поиск с подсказками
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('search-suggestions');
+        const categorySelect = document.getElementById('search-category');
+        let timeout = null;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(timeout);
+                const query = this.value.trim();
+                const category = categorySelect.value;
+
+                if (!query) {
+                    suggestionsBox.innerHTML = '';
+                    suggestionsBox.style.display = 'none';
+                    return;
+                }
+
+                timeout = setTimeout(() => {
+                    fetch(`/search-suggestions/?q=${encodeURIComponent(query)}&category=${category}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.suggestions.length > 0) {
+                                suggestionsBox.innerHTML = data.suggestions.map(item => `<div class="suggestion-item">${item}</div>`).join('');
+                            } else {
+                                suggestionsBox.innerHTML = '<div class="suggestion-item">Ничего не найдено</div>';
+                            }
+                            suggestionsBox.style.display = 'block';
+
+                            document.querySelectorAll('.suggestion-item').forEach(el => {
+                                el.addEventListener('click', () => {
+                                    searchInput.value = el.textContent;
+                                    document.getElementById('search-form').submit();
+                                });
+                            });
+                        });
+                }, 300);
+            });
+
+            // Скрыть подсказки при клике вне
+            document.addEventListener('click', e => {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.style.display = 'none';
+                }
+            });
+        }
+
+        // Очистка поиска
+        const clearBtn = document.getElementById('clear-search');
+        if (clearBtn && searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearBtn.style.display = searchInput.value ? 'block' : 'none';
+            });
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                clearBtn.style.display = 'none';
+                searchInput.focus();
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.style.display = 'none';
+            });
+        }
+    });
+</script>
