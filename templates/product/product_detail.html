@@ -21,25 +21,39 @@
         <div class="row">
             <div class="col-md-2">
                 <div id="thumbs" class="d-flex flex-column align-items-center">
+                    {# Сначала обложка #}
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}"
+                             class="img-thumbnail mb-2 thumb active"
+                             data-target="#mainImage"
+                             data-img="{{ product.image.url }}"
+                             alt="{{ product.name }}">
+                    {% endif %}
+
+                    {# Затем остальные фото из связанных изображений #}
                     {% for image in product.images.all %}
                         <img src="{{ image.image.url }}"
-                             class="img-thumbnail mb-2 thumb {% if forloop.first %}active{% endif %}"
+                             class="img-thumbnail mb-2 thumb {% if not product.image and forloop.first %}active{% endif %}"
                              data-target="#mainImage"
                              data-img="{{ image.image.url }}"
                              alt="{{ product.name }}">
                     {% empty %}
-                        <img src="{% static 'img/no-image.png' %}"
-                             class="img-thumbnail mb-2 active"
-                             data-target="#mainImage"
-                             data-img="{% static 'img/no-image.png' %}"
-                             alt="Нет фото">
+                        {% if not product.image %}
+                            <img src="{% static 'img/no-image.png' %}"
+                                 class="img-thumbnail mb-2 active"
+                                 data-target="#mainImage"
+                                 data-img="{% static 'img/no-image.png' %}"
+                                 alt="Нет фото">
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
 
             <div class="col-md-5">
                 <div class="main-image text-center">
-                    {% if product.images.first %}
+                    {% if product.image %}
+                        <img id="mainImage" src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">
+                    {% elif product.images.first %}
                         <img id="mainImage" src="{{ product.images.first.image.url }}" class="img-fluid"
                              alt="{{ product.name }}">
                     {% else %}
@@ -47,6 +61,7 @@
                     {% endif %}
                 </div>
             </div>
+
 
             <div class="col-md-5">
                 <div class="product-details">
@@ -73,15 +88,6 @@
                         не указан
                     {% endif %}
                     <br>
-                    <strong>Комплектация:</strong>
-                    {% if product.complectation %}
-                        {{ product.complectation }}
-                    {% else %}
-                        —
-                    {% endif %}
-                    <br>
-                    <strong>Дата добавления:</strong> {{ product.created_at|date:"d.m.Y" }}
-                    <br>
 
                     <div class="add-to-cart" data-product-id="{{ product.id }}" style="margin-top: 20px">
                         <div class="qty-label">
@@ -92,9 +98,16 @@
                                 <span class="qty-down">-</span>
                             </div>
                         </div>
-                        <button class="add-to-cart-btn btn btn-danger mt-3">
-                            <i class="fa fa-shopping-cart"></i> В корзину
-                        </button>
+                        {% if user.is_authenticated %}
+                            <button class="add-to-cart-btn btn btn-danger mt-3">
+                                <i class="fa fa-shopping-cart"></i> В корзину
+                            </button>
+                        {% else %}
+                            <button class="add-to-cart-btn btn mt-3 disabled-btn" disabled
+                                    title="Только для авторизованных пользователей">
+                                <i class="fa fa-shopping-cart"></i> В корзину
+                            </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -117,15 +130,65 @@
                     <div id="tab2" class="tab-pane fade in">
                         <div class="row">
                             <div class="col-md-12">
-                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-                                    incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                                    exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                                    irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                                    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-                                    deserunt mollit anim id est laborum.</p>
+                                <!-- Бренд -->
+                                {% if product.brand %}
+                                    <p><strong>Бренд:</strong> {{ product.brand.name }}</p>
+                                {% endif %}
+
+                                <!-- Цена и статус -->
+                                <p>
+                                    <strong>Цена:</strong>
+                                    {% if product.old_price %}
+                                        <span class="text-muted" style="text-decoration: line-through;">
+                    {{ product.old_price|humanize_price }} ₽
+                </span>
+                                    {% endif %}
+                                    <span class="text-danger fw-bold">{{ product.price|humanize_price }} ₽</span>
+
+                                    {% if product.discount %}
+                                        <span class="badge bg-success">-{{ product.discount }}%</span>
+                                    {% endif %}
+
+                                    {% if product.status %}
+                                        {% if product.status == 'new' %}
+                                            <span class="status-badge status-new">Новый</span>
+                                        {% elif product.status == 'excellent' %}
+                                            <span class="status-badge status-excellent">Отличное состояние</span>
+                                        {% elif product.status == 'defect' %}
+                                            <span class="status-badge status-defect">Есть дефекты</span>
+                                        {% elif product.status == 'marriage' %}
+                                            <span class="status-badge status-marriage">На запчасти</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+
+                                <!-- Наличие -->
+                                <p>
+                                    <strong>Наличие:</strong>
+                                    {% if product.is_available %}
+                                        <span class="text-success">В наличии</span>
+                                    {% else %}
+                                        <span class="text-danger">Нет в наличии</span>
+                                    {% endif %}
+                                </p>
+
+                                <!-- Комплектация -->
+                                {% if product.complectation %}
+                                    <h5 class="mt-3">Комплектация:</h5>
+                                    <p>{{ product.complectation|linebreaks }}</p>
+                                {% endif %}
+
+                                <!-- Даты -->
+                                <small class="text-muted">
+                                    Добавлен: {{ product.created_at|date:"d.m.Y" }},
+                                    обновлён: {{ product.updated_at|date:"d.m.Y" }}
+                                </small>
+
                             </div>
                         </div>
+
                     </div>
+
                 </div>
             </div>
         </div>
@@ -144,136 +207,70 @@
                 </div>
             </div>
 
-            <!-- product -->
-            <div class="col-md-3 col-xs-6">
-                <div class="product">
-                    <div class="product-img">
-                        <img src="./img/product01.png" alt="">
-                        <div class="product-label">
-                            <span class="sale">-30%</span>
+            <div class="row">
+                {% for p in related_products %}
+                    <div class="col-md-3 col-xs-6">
+                        <div class="product">
+                            <div class="product-img">
+                                <img src="{{ p.image.url|default:'/static/img/product01.png' }}" alt="{{ p.name }}">
+                                {% if p.discount %}
+                                    <div class="product-label">
+                                        <span class="sale">-{{ p.discount }}%</span>
+                                    </div>
+                                {% endif %}
+                                {% if p.is_new %}
+                                    <div class="product-label">
+                                        <span class="new">Новинка</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="product-body">
+                                <p class="product-category">{{ p.category.name }}</p>
+                                <h3 class="product-name">
+                                    <a href="{{ p.get_absolute_url }}">{{ p.name }}</a>
+                                </h3>
+                                <h4 class="product-price">
+                                    {{ p.price|humanize_price }} ₽
+                                    {% if p.old_price %}
+                                        <del class="product-old-price">{{ p.old_price|humanize_price }} ₽</del>
+                                    {% endif %}
+                                </h4>
+                                <div class="product-btns" data-product-id="{{ p.id }}">
+                                    {% if user.is_authenticated %}
+                                        <button class="add-to-wishlist-btn">
+                                            <i class="fa fa-heart-o"></i>
+                                            <span class="tooltipp">Добавить в избранное</span>
+                                        </button>
+                                        <button class="add-to-cart-btn">
+                                            <i class="fa fa-shopping-cart"></i>
+                                            <span class="tooltipp">Добавить в корзину</span>
+                                        </button>
+                                    {% else %}
+                                        <button class="add-to-wishlist-btn disabled-btn" disabled
+                                                title="Только для авторизованных пользователей">
+                                            <i class="fa fa-heart-o"></i>
+                                            <span class="tooltipp">Только для авторизованных пользователей</span>
+                                        </button>
+                                        <button class="add-to-cart-btn disabled-btn" disabled
+                                                title="Только для авторизованных пользователей">
+                                            <i class="fa fa-shopping-cart"></i>
+                                            <span class="tooltipp">Только для авторизованных пользователей</span>
+                                        </button>
+                                    {% endif %}
+                                    <button class="quick-view-btn">
+                                        <i class="fa fa-eye"></i>
+                                        <span class="tooltipp">Быстрый просмотр</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="product-body">
-                        <p class="product-category">Category</p>
-                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
-                        <h4 class="product-price">$980.00
-                            <del class="product-old-price">$990.00</del>
-                        </h4>
-                        <div class="product-rating">
-                        </div>
-                        <div class="product-btns">
-                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
-                            </button>
-                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
-                            </button>
-                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {% empty %}
+                    <p class="text-center">Нет похожих товаров</p>
+                {% endfor %}
             </div>
-            <!-- /product -->
-
-            <!-- product -->
-            <div class="col-md-3 col-xs-6">
-                <div class="product">
-                    <div class="product-img">
-                        <img src="./img/product02.png" alt="">
-                        <div class="product-label">
-                            <span class="new">NEW</span>
-                        </div>
-                    </div>
-                    <div class="product-body">
-                        <p class="product-category">Category</p>
-                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
-                        <h4 class="product-price">$980.00
-                            <del class="product-old-price">$990.00</del>
-                        </h4>
-                        <div class="product-rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                        </div>
-                        <div class="product-btns">
-                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
-                            </button>
-                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
-                            </button>
-                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /product -->
-
-            <div class="clearfix visible-sm visible-xs"></div>
-
-            <!-- product -->
-            <div class="col-md-3 col-xs-6">
-                <div class="product">
-                    <div class="product-img">
-                        <img src="./img/product03.png" alt="">
-                    </div>
-                    <div class="product-body">
-                        <p class="product-category">Category</p>
-                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
-                        <h4 class="product-price">$980.00
-                            <del class="product-old-price">$990.00</del>
-                        </h4>
-                        <div class="product-rating">
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star"></i>
-                            <i class="fa fa-star-o"></i>
-                        </div>
-                        <div class="product-btns">
-                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
-                            </button>
-                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
-                            </button>
-                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /product -->
-
-            <!-- product -->
-            <div class="col-md-3 col-xs-6">
-                <div class="product">
-                    <div class="product-img">
-                        <img src="./img/product04.png" alt="">
-                    </div>
-                    <div class="product-body">
-                        <p class="product-category">Category</p>
-                        <h3 class="product-name"><a href="#">product name goes here</a></h3>
-                        <h4 class="product-price">$980.00
-                            <del class="product-old-price">$990.00</del>
-                        </h4>
-                        <div class="product-rating">
-                        </div>
-                        <div class="product-btns">
-                            <button class="add-to-wishlist"><i class="fa fa-heart-o"></i><span class="tooltipp">add to wishlist</span>
-                            </button>
-                            <button class="add-to-compare"><i class="fa fa-exchange"></i><span class="tooltipp">add to compare</span>
-                            </button>
-                            <button class="quick-view"><i class="fa fa-eye"></i><span class="tooltipp">quick view</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /product -->
-
         </div>
-        <!-- /row -->
     </div>
-    <!-- /container -->
 </div>
 <script>
     function getCookie(name) {

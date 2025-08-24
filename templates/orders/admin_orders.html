@@ -5,18 +5,10 @@
 
 <style>
     .table-container {
-        max-height: 500px;
+        max-height: 800px;
         overflow-y: auto;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-container table thead {
-        position: sticky;
-        top: 0;
-        background: linear-gradient(90deg, #5abab4, #309189);
-        color: white;
-        z-index: 10;
     }
 
     .table-container table {
@@ -24,13 +16,27 @@
         border-collapse: collapse;
     }
 
-    .table-container th, .table-container td {
-        padding: 10px 15px;
+    .table-container th,
+    .table-container td {
+        padding: 12px 15px;
         text-align: center;
         vertical-align: middle;
         border-bottom: 1px solid #dee2e6;
     }
 
+    .table-container thead {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(90deg, #5abab4, #309189);
+        color: white;
+        z-index: 10;
+    }
+
+    .table-container tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    /* Статусы */
     .status-new {
         background-color: #ffc107;
         color: #212529;
@@ -69,13 +75,16 @@
         margin-bottom: 5px;
     }
 
-    .table-container tbody tr:nth-child(odd) {
-        background-color: #f9f9f9;
-    }
-
+    /* Адаптивность для мобильных */
     @media (max-width: 768px) {
-        .table-container table, .table-container tbody, .table-container tr, .table-container td, .table-container th {
+        .table-container table,
+        .table-container thead,
+        .table-container tbody,
+        .table-container tr,
+        .table-container th,
+        .table-container td {
             display: block;
+            width: 100%;
         }
 
         .table-container thead {
@@ -86,6 +95,8 @@
             text-align: right;
             position: relative;
             padding-left: 50%;
+            border: none;
+            border-bottom: 1px solid #dee2e6;
         }
 
         .table-container td::before {
@@ -96,7 +107,12 @@
             font-weight: bold;
             text-align: left;
         }
+
+        .order-actions .btn {
+            margin-bottom: 8px;
+        }
     }
+
 </style>
 
 
@@ -135,20 +151,21 @@
                         <tbody>
                         {% for order in orders %}
                             <tr>
-                                <td>{{ order.id }}</td>
-                                <td>{{ order.full_name }}</td>
-                                <td>{{ order.phone }}</td>
-                                <td>
+                                <td data-label="ID">{{ order.id }}</td>
+                                <td data-label="ФИО">{{ order.full_name }}</td>
+                                <td data-label="Телефон">{{ order.phone }}</td>
+                                <td data-label="Товары">
                                     {% for item in order.items.all %}
                                         {{ item.name }} x {{ item.quantity }}<br>
                                     {% endfor %}
                                 </td>
-                                <td><strong>{{ order.total_price|humanize_price }} ₽</strong></td>
-                                <td>{{ order.get_payment_method_display }}</td>
-                                <td>
+                                <td data-label="Общая сумма"><strong>{{ order.total_price|humanize_price }} ₽</strong>
+                                </td>
+                                <td data-label="Метод оплаты">{{ order.get_payment_method_display }}</td>
+                                <td data-label="Статус">
                                     <span class="status-{{ order.status }}">{{ order.get_status_display }}</span>
                                 </td>
-                                <td class="order-actions">
+                                <td data-label="Действия" class="order-actions">
                                     {% if order.status == 'new' %}
                                         <a href="{% url 'process_order' order.id 'accept' %}"
                                            class="btn btn-sm btn-success">Принять</a>
@@ -162,6 +179,7 @@
                             </tr>
                         {% endfor %}
                         </tbody>
+
                     </table>
                 </div>
             </div>

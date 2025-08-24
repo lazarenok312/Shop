@@ -1398,7 +1398,7 @@ textarea.input {
     border-radius: 50%;
     background: #fff;
     cursor: pointer;
-    box-shadow: 0 0 4px rgba(0,0,0,0.15);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Убираем дефолтные палочки */
@@ -2487,7 +2487,6 @@ textarea.input {
     border-radius: 8px;
 }
 
-/* Таблица с информацией */
 #product-info {
     width: 100%;
     border-collapse: collapse;
@@ -2505,7 +2504,6 @@ textarea.input {
     color: #555;
 }
 
-/* Адаптивность */
 @media (max-width: 480px) {
     .modal-content {
         width: 95%;
@@ -2605,9 +2603,19 @@ textarea.input {
 }
 
 .btn-increase:hover {
-    background-color: #28a745; /* зелёный */
+    background-color: #28a745;
     color: #fff;
     border-color: #28a745;
+}
+
+.disabled-btn {
+    color: #000000 !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.disabled-btn i {
+    color: #929191;
 }
 
 .custom-dropdown {
@@ -2686,4 +2694,90 @@ textarea.input {
     outline: none;
     border-color: #30928a;
     box-shadow: 0 0 4px rgba(48, 146, 138, 0.4);
+}
+
+.main-image img#mainImage {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+}
+
+.status-circle {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #fff;
+    margin-right: 5px;
+}
+
+.status-circle.new {
+    background-color: #309189;
+}
+
+.status-circle.excellent {
+    background-color: #87ca61;
+    color: #87ca61;
+    -webkit-text-stroke: 0.7px #fff;
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-circle.defect {
+    background-color: #fd7e14;
+    color: #fd7e14;
+    -webkit-text-stroke: 0.7px #fff;
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-circle.marriage {
+    background-color: #dc3545;
+    color: #dc3545;
+    -webkit-text-stroke: 0.7px #fff;
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.add-to-wishlist-btn.in-wishlist {
+    color: #dc3545;
+}
+
+.add-to-wishlist-btn.in-wishlist i {
+    color: #dc3545;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    margin-left: 5px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    text-transform: uppercase;
+}
+
+.status-new {
+    background-color: #309189;
+}
+
+.status-excellent {
+    background-color: #87ca61;
+    color: #ffffff;
+}
+
+.status-defect {
+    background-color: #fd7e14;
+}
+
+.status-marriage {
+    background-color: #dc3545;
 }

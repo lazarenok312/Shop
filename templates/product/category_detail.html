@@ -24,7 +24,7 @@
                         <div id="tab1" class="tab-pane active">
                             <div class="products-slick" data-nav="#slick-nav-1">
                                 <!-- products loop -->
-                               {% for product in products %}
+                                {% for product in products %}
                                     <div class="product">
                                         <div class="product-img">
                                             {% if product.image %}
@@ -32,10 +32,19 @@
                                             {% else %}
                                                 <img src="{% static 'img/default.png' %}" alt="Нет фото">
                                             {% endif %}
-                                            <<div class="product-label">
-                                                {% if product.is_new %}
-                                                    <span class="new">Новинка</span>
+                                            <div class="product-label">
+                                                {% if product.status %}
+                                                    {% if product.status == 'new' %}
+                                                        <span class="status-circle new">Новый</span>
+                                                    {% elif product.status == 'excellent' %}
+                                                        <span class="status-circle excellent">Отличное состояние</span>
+                                                    {% elif product.status == 'defect' %}
+                                                        <span class="status-circle defect">Есть дефекты</span>
+                                                    {% elif product.status == 'marriage' %}
+                                                        <span class="status-circle marriage">На запчасти</span>
+                                                    {% endif %}
                                                 {% endif %}
+
                                                 {% if product.discount %}
                                                     <span class="sale">-{{ product.discount }}%</span>
                                                 {% endif %}
@@ -55,25 +64,40 @@
                                                     <del class="product-old-price">{{ product.old_price }} ₽</del>
                                                 {% endif %}
                                             </h4>
-                                            <div class="product-rating">
-                                            </div>
+                                            <div class="product-rating"></div>
                                             <div class="product-btns" data-product-id="{{ product.id }}">
-                                        <button class="add-to-wishlist-btn">
-                                            <i class="fa fa-heart-o"></i>
-                                            <span class="tooltipp">Добавить в избранное</span>
-                                        </button>
-                                        <button class="add-to-cart-btn">
-                                            <i class="fa fa-shopping-cart"></i>
-                                            <span class="tooltipp">Добавить в корзину</span>
-                                        </button>
-                                        <button class="quick-view-btn">
-                                            <i class="fa fa-eye"></i>
-                                            <span class="tooltipp">Быстрый просмотр</span>
-                                        </button>
-                                    </div>
+                                                {% if user.is_authenticated %}
+                                                    <button class="add-to-wishlist-btn {% if product in wishlist_items %}in-wishlist{% endif %}">
+                                                        <i class="fa {% if product in wishlist_items %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
+                                                        <span class="tooltipp">
+        {% if product in wishlist_items %}В избранном{% else %}Добавить в избранное{% endif %}
+    </span>
+                                                    </button>
+                                                    <button class="add-to-cart-btn">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                        <span class="tooltipp">Добавить в корзину</span>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="add-to-wishlist-btn disabled-btn" disabled
+                                                            title="Только для авторизованных пользователей">
+                                                        <i class="fa fa-heart-o"></i>
+                                                        <span class="tooltipp">Только для авторизованных пользователей</span>
+                                                    </button>
+                                                    <button class="add-to-cart-btn disabled-btn" disabled
+                                                            title="Только для авторизованных пользователей">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                        <span class="tooltipp">Только для авторизованных пользователей</span>
+                                                    </button>
+                                                {% endif %}
+                                                <button class="quick-view-btn">
+                                                    <i class="fa fa-eye"></i>
+                                                    <span class="tooltipp">Быстрый просмотр</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 {% endfor %}
+
                                 <!-- /products loop -->
                             </div>
                             <div id="slick-nav-1" class="products-slick-nav"></div>

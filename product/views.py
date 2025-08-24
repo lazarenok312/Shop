@@ -22,41 +22,56 @@ class HomePageView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Product.objects.all().select_related('category')
+        queryset = Product.objects.select_related('category', 'brand').all()
 
+        # --- Параметры фильтров ---
         q = self.request.GET.get('q', '').strip()
         category_ids = self.request.GET.getlist('category')
+        brand_ids = self.request.GET.getlist('brand')
+        status_list = self.request.GET.getlist('status')
         sort = self.request.GET.get('sort')
         show = self.request.GET.get('show')
         price_min = self.request.GET.get('price_min')
         price_max = self.request.GET.get('price_max')
         discounted = self.request.GET.get('discounted')
 
+        # --- Поиск по названию и категории ---
         if q:
             queryset = queryset.filter(
                 Q(name__icontains=q) | Q(category__name__icontains=q)
             )
 
+        # --- Фильтр по категориям ---
         if category_ids and not ("0" in category_ids):
             queryset = queryset.filter(category_id__in=category_ids)
 
+        # --- Фильтр по брендам ---
+        if brand_ids and not ("0" in brand_ids):
+            queryset = queryset.filter(brand_id__in=brand_ids)
+
+        # --- Фильтр по статусу товара ---
+        if status_list:
+            queryset = queryset.filter(status__in=status_list)
+
+        # --- Фильтр по цене ---
         if price_min:
             try:
                 queryset = queryset.filter(price__gte=float(price_min))
             except ValueError:
                 pass
-
         if price_max:
             try:
                 queryset = queryset.filter(price__lte=float(price_max))
             except ValueError:
                 pass
 
+        # --- Фильтр по скидке ---
         if discounted == '1':
             queryset = queryset.filter(
                 Q(discount__gt=0) | Q(old_price__gt=F('price'))
             )
 
+        # --- Сортировка ---
         if sort == 'price_asc':
             queryset = queryset.order_by('price')
         elif sort == 'price_desc':
@@ -66,6 +81,7 @@ class HomePageView(ListView):
         else:
             queryset = queryset.order_by('-id')
 
+        # --- Пагинация ---
         if show:
             try:
                 self.paginate_by = int(show)
@@ -78,13 +94,30 @@ class HomePageView(ListView):
         context = super().get_context_data(**kwargs)
         profile = getattr(self.request.user, 'profile', None)
 
-        context['categories'] = Category.objects.all()
+        # --- Категории ---
+        categories = Category.objects.annotate(product_count=Count('products'))
+        context['categories'] = categories
         context['selected_categories'] = self.request.GET.getlist('category')
 
+        # --- Бренды ---
+        brands_qs = Brand.objects.annotate(product_count=Count('products')).filter(product_count__gt=0)
+        context['brands'] = brands_qs
+        context['selected_brands'] = self.request.GET.getlist('brand')
+
+        # --- Статус товара (кружки) ---
+        status_counts_qs = Product.objects.values('status').annotate(count=Count('id'))
+        status_counts = {item['status']: item['count'] for item in status_counts_qs}
+
+        context['status_choices'] = Product.STATUS_CHOICES
+        context['status_counts'] = status_counts
+        context['selected_status'] = self.request.GET.getlist('status')
+
+        # --- Поиск, сортировка, пагинация ---
         context['search_query'] = self.request.GET.get('q', '')
         context['sort'] = self.request.GET.get('sort', 'popular')
         context['show'] = self.paginate_by
 
+        # --- Топ категории и продукты ---
         context['top_categories'] = (
             Category.objects
                 .annotate(product_count=Count("products"))
@@ -94,14 +127,14 @@ class HomePageView(ListView):
             total_sold=Sum('cartitem__quantity')
         ).order_by('-total_sold')[:3]
 
-        context['new_products'] = Product.objects.filter(is_new=True).order_by('-id')[:12]
-
+        # --- Диапазон цен ---
         prices = Product.objects.aggregate(min_price=Min('price'), max_price=Max('price'))
         context['min_price'] = prices['min_price'] or 0
         context['max_price'] = prices['max_price'] or 0
         context['selected_min_price'] = self.request.GET.get('price_min', context['min_price'])
         context['selected_max_price'] = self.request.GET.get('price_max', context['max_price'])
 
+        # --- Корзина ---
         cart_items = []
         cart_qty = 0
         cart_total = 0
@@ -111,17 +144,21 @@ class HomePageView(ListView):
                 cart_items.append({'product': item.product, 'quantity': item.quantity})
                 cart_qty += item.quantity
                 cart_total += item.quantity * item.product.price
-
         context['cart_items'] = cart_items
         context['cart_qty'] = cart_qty
         context['cart_total'] = cart_total
 
+        # --- Избранное ---
         wishlist_items = []
         if profile:
             wishlist_items = list(profile.favorites.all())
-
         context['wishlist_items'] = wishlist_items
         context['wishlist_qty'] = len(wishlist_items)
+
+        # --- Новые товары для отдельного блока ---
+        context['new_products'] = Product.objects.filter(
+            status='new', is_available=True
+        ).order_by('-created_at')[:10]
 
         return context
 
@@ -166,6 +203,14 @@ class CategoryDetailView(DetailView):
         products = self.object.products.all()
         context['products'] = products
         context['has_products'] = products.exists()
+
+        # --- Избранное для текущего пользователя ---
+        profile = getattr(self.request.user, 'profile', None)
+        wishlist_items = []
+        if profile:
+            wishlist_items = list(profile.favorites.all())
+        context['wishlist_items'] = wishlist_items
+
         return context
 
 
@@ -173,6 +218,15 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'product/product_detail.html'
     context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.object
+        related_products = Product.objects.filter(
+            category=product.category
+        ).exclude(id=product.id)[:4]
+        context['related_products'] = related_products
+        return context
 
 
 @require_POST
@@ -406,3 +460,16 @@ def process_order(request, order_id, action):
         order.status = 'canceled'
     order.save()
     return redirect('admin_orders')
+
+
+def quick_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    data = {
+        "name": product.name,
+        "description": product.description,
+        "category": product.category.name if product.category else "",
+        "price": product.price,
+        "old_price": product.old_price,
+        "image": product.image.url if product.image else "",
+    }
+    return JsonResponse(data)

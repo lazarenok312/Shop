@@ -8,9 +8,10 @@
                 <div class="col-md-3 col-xs-6">
                     <div class="footer">
                         <h3 class="footer-title">О нас</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut.</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
+                            ut.</p>
                         <ul class="footer-links list-unstyled">
-                            <li><a href="#"><i class="fa fa-map-marker me-2"></i>Наш адрес</a></li>
+                            <li><a href="#"><i class="fa fa-map-marker me-2"></i>Краснодарский край</a></li>
                             <li><a href="#"><i class="fa fa-phone me-2"></i>Телефон</a></li>
                             <li><a href="#"><i class="fa fa-envelope-o me-2"></i>Email</a></li>
                         </ul>
@@ -23,7 +24,8 @@
                         <h3 class="footer-title">Категории</h3>
                         <ul class="footer-links list-unstyled">
                             {% for category in top_categories %}
-                                <li><a href="{% url 'category_detail' category.id %}"><i class="fa fa-tag me-2"></i>{{ category.name }}</a></li>
+                                <li><a href="{% url 'category_detail' category.id %}"><i
+                                        class="fa fa-tag me-2"></i>{{ category.name }}</a></li>
                             {% empty %}
                                 <li><i class="fa fa-ban me-2"></i>Нет категорий</li>
                             {% endfor %}
@@ -53,11 +55,11 @@
                         <h3 class="footer-title">Сервисы</h3>
                         <ul class="footer-links list-unstyled">
                             {% if user.is_authenticated %}
-                                <li>
-                                    <a class="d-flex align-items-center text-primary" href="{% url 'profile_detail' user.profile.id %}">
-                                        <i class="fa fa-id-badge me-2"></i>Мой профиль
-                                    </a>
-                                </li>
+                                {#                                <li>#}
+                                {#                                    <a class="d-flex align-items-center text-primary" href="{% url 'profile_detail' user.profile.id %}">#}
+                                {#                                        <i class="fa fa-id-badge me-2"></i>Мой профиль#}
+                                {#                                    </a>#}
+                                {#                                </li>#}
                             {% else %}
                                 <li>
                                     <a class="d-flex align-items-center text-success" href="{% url 'login' %}">

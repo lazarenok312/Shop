@@ -45,18 +45,31 @@ class ProductImageInline(admin.TabularInline):  # можно заменить н
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "brand", "category", "price", "is_available", "stock", "created_at")
-    list_filter = ("brand", "category", "is_available")
+    list_display = ("name", "brand", "category", "price", "status_colored", "is_available", "stock", "created_at")
+    list_filter = ("brand", "category", "is_available", "status")
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
     ordering = ("-created_at",)
     autocomplete_fields = ("brand", "category")
 
     def stock(self, obj):
-        # если у тебя появится поле quantity или что-то похожее
         return getattr(obj, 'quantity', '—')
-
     stock.short_description = "На складе"
+
+    def status_colored(self, obj):
+        color = {
+            'new': 'green',
+            'excellent': 'yellow',
+            'defect': 'orange',
+            'marriage': 'red'
+        }.get(obj.status, 'gray')
+        return format_html(
+            '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background-color:{};"></span> {}',
+            color,
+            obj.get_status_display()
+        )
+
+    status_colored.short_description = "Состояние"
 
 
 @admin.register(ProductImage)

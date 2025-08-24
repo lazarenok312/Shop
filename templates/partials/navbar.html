@@ -17,14 +17,14 @@
                             <span class="fw-semibold">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end custom-dropdown" aria-labelledby="accountDropdown">
-                            {% if user.profile %}
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center"
-                                       href="{% url 'profile_detail' user.profile.id %}">
-                                        <i class="fa fa-id-badge me-2 text-primary"></i> Профиль
-                                    </a>
-                                </li>
-                            {% endif %}
+                            {#                            {% if user.profile %}#}
+                            {#                                <li>#}
+                            {#                                    <a class="dropdown-item d-flex align-items-center"#}
+                            {#                                       href="{% url 'profile_detail' user.profile.id %}">#}
+                            {#                                        <i class="fa fa-id-badge me-2 text-primary"></i> Профиль#}
+                            {#                                    </a>#}
+                            {#                                </li>#}
+                            {#                            {% endif %}#}
 
                             <!-- Новый пункт Заказы -->
                             {% if user.is_staff %}
@@ -110,14 +110,14 @@
                             <a href="{% url 'cart_view' %}">
                                 <i class="fa fa-heart-o"></i>
                                 <span>Избранное</span>
-                                <div class="qty">2</div>
+                                <div class="qty" id="wishlist-qty">{{ wishlist_qty }}</div>
                             </a>
                         </div>
                         <div class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
                                 <i class="fa fa-shopping-cart"></i>
                                 <span>Корзина</span>
-                                <div class="qty">{{ cart_qty }}</div>
+                                <div class="qty" id="cart-qty">{{ cart_qty }}</div>
                             </a>
                             <div class="cart-dropdown">
                                 <div class="cart-list">

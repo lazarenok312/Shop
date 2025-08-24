@@ -8,6 +8,7 @@
             <ul class="main-nav nav navbar-nav">
                 <li class="active"><a href="{% url 'home' %}"><i class="fa fa-home"></i> Главная</a></li>
                 <li><a href="{% url 'home' %}?discounted=1"><i class="fa fa-fire"></i> Горячие предложения</a></li>
+                <li><a href="{% url 'home' %}?discounted=1"><i class="fa fa-gavel"></i> Запчасти</a></li>
                 <li><a href="#"><i class="fa fa-th-list"></i> Категории</a></li>
             </ul>
         </div>
@@ -61,9 +62,18 @@
                                                 <img src="{% static 'img/default.png' %}" alt="Нет фото">
                                             {% endif %}
                                             <div class="product-label">
-                                                {% if product.is_new %}
-                                                    <span class="new">Новинка</span>
+                                                {% if product.status %}
+                                                    {% if product.status == 'new' %}
+                                                        <span class="status-circle new">Новый</span>
+                                                    {% elif product.status == 'excellent' %}
+                                                        <span class="status-circle excellent">Отличное состояние</span>
+                                                    {% elif product.status == 'defect' %}
+                                                        <span class="status-circle defect">Есть дефекты</span>
+                                                    {% elif product.status == 'marriage' %}
+                                                        <span class="status-circle marriage">На запчасти</span>
+                                                    {% endif %}
                                                 {% endif %}
+
                                                 {% if product.discount %}
                                                     <span class="sale">-{{ product.discount }}%</span>
                                                 {% endif %}
@@ -85,17 +95,31 @@
                                                     </del>
                                                 {% endif %}
                                             </h4>
-                                            <div class="product-rating">
-                                            </div>
+                                            <div class="product-rating"></div>
                                             <div class="product-btns" data-product-id="{{ product.id }}">
-                                                <button class="add-to-wishlist-btn">
-                                                    <i class="fa fa-heart-o"></i>
-                                                    <span class="tooltipp">Добавить в избранное</span>
-                                                </button>
-                                                <button class="add-to-cart-btn">
-                                                    <i class="fa fa-shopping-cart"></i>
-                                                    <span class="tooltipp">Добавить в корзину</span>
-                                                </button>
+                                                {% if user.is_authenticated %}
+                                                    <button class="add-to-wishlist-btn {% if product in wishlist_items %}in-wishlist{% endif %}">
+                                                        <i class="fa {% if product in wishlist_items %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
+                                                        <span class="tooltipp">
+                {% if product in wishlist_items %}В избранном{% else %}Добавить в избранное{% endif %}
+            </span>
+                                                    </button>
+                                                    <button class="add-to-cart-btn">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                        <span class="tooltipp">Добавить в корзину</span>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="add-to-wishlist-btn disabled-btn" disabled
+                                                            title="Только для авторизованных пользователей">
+                                                        <i class="fa fa-heart-o"></i>
+                                                        <span class="tooltipp">Только для авторизованных пользователей</span>
+                                                    </button>
+                                                    <button class="add-to-cart-btn disabled-btn" disabled
+                                                            title="Только для авторизованных пользователей">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                        <span class="tooltipp">Только для авторизованных пользователей</span>
+                                                    </button>
+                                                {% endif %}
                                                 <button class="quick-view-btn">
                                                     <i class="fa fa-eye"></i>
                                                     <span class="tooltipp">Быстрый просмотр</span>
@@ -110,6 +134,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -122,6 +147,7 @@
                     <input type="hidden" name="sort" value="{{ request.GET.sort }}">
                     <input type="hidden" name="show" value="{{ request.GET.show }}">
 
+                    <!-- Категории -->
                     <div class="aside">
                         <h3 class="aside-title"><i class="fa fa-th-list"></i> Категории</h3>
                         <div class="checkbox-filter">
@@ -140,6 +166,49 @@
                         </div>
                     </div>
 
+                    <!-- Бренды -->
+                    <!-- Бренды -->
+                    {% if brands %}
+                        <div class="aside">
+                            <h3 class="aside-title"><i class="fa fa-briefcase"></i> Бренды</h3>
+                            <div class="checkbox-filter">
+                                {% for brand in brands %}
+                                    <div class="input-checkbox">
+                                        <input type="checkbox" id="brand-{{ brand.id }}" name="brand"
+                                               value="{{ brand.id }}"
+                                               {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
+                                        <label for="brand-{{ brand.id }}">
+                                            <span></span>
+                                            {{ brand.name }}
+                                            <small>({{ brand.product_count }})</small>
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Состояние товара -->
+                    <div class="aside">
+                        <h3 class="aside-title"><i class="fa fa-circle"></i> Состояние</h3>
+                        <div class="checkbox-filter">
+                            {% for status_value, status_label in status_choices %}
+                                <div class="input-checkbox">
+                                    <input type="checkbox" id="status-{{ status_value }}" name="status"
+                                           value="{{ status_value }}"
+                                           {% if status_value in selected_status %}checked{% endif %}>
+                                    <label for="status-{{ status_value }}">
+                                        <span></span>
+                                        {{ status_label }}
+                                        <small>({{ status_counts|dict_get:status_value }})</small>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- Диапазон цены -->
                     <div class="aside">
                         <h3 class="aside-title"><i class="fa fa-money"></i> Диапазон цены</h3>
                         <div class="price-filter custom-price-slider">
@@ -176,6 +245,7 @@
                         Сбросить фильтры <i class="fa fa-times"></i>
                     </a>
                 </form>
+
                 <br>
                 <div class="aside">
                     <h3 class="aside-title">Топ продаж</h3>
@@ -214,29 +284,36 @@
             <div id="store" class="col-md-9">
                 <div class="store-filter clearfix">
                     <div class="store-sort d-flex gap-3 align-items-center">
-                        <label class="custom-select-label">
-                            Сортировка:
-                            <select class="custom-select" id="sort-select">
-                                <option value="popular"
-                                        {% if request.GET.sort == 'popular' or not request.GET.sort %}selected{% endif %}>
-                                    Популярные
-                                </option>
-                                <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>
-                                    Цена: по возрастанию
-                                </option>
-                                <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>
-                                    Цена: по убыванию
-                                </option>
-                            </select>
-                        </label>
+                        <form method="get" id="sort-form">
+                            <label class="custom-select-label">
+                                Сортировка:
+                                <select class="custom-select" id="sort-select" name="sort"
+                                        onchange="document.getElementById('sort-form').submit()">
+                                    <option value="popular"
+                                            {% if request.GET.sort == 'popular' or not request.GET.sort %}selected{% endif %}>
+                                        Популярные
+                                    </option>
+                                    <option value="price_asc"
+                                            {% if request.GET.sort == 'price_asc' %}selected{% endif %}>
+                                        Цена: по возрастанию
+                                    </option>
+                                    <option value="price_desc"
+                                            {% if request.GET.sort == 'price_desc' %}selected{% endif %}>
+                                        Цена: по убыванию
+                                    </option>
+                                </select>
+                            </label>
 
-                        <label class="custom-select-label">
-                            Показать:
-                            <select class="custom-select" id="show-select">
-                                <option value="20" {% if request.GET.show == '20' %}selected{% endif %}>20</option>
-                                <option value="50" {% if request.GET.show == '50' %}selected{% endif %}>50</option>
-                            </select>
-                        </label>
+                            <label class="custom-select-label">
+                                Показать:
+                                <select class="custom-select" id="show-select" name="show"
+                                        onchange="document.getElementById('sort-form').submit()">
+                                    <option value="20" {% if request.GET.show == '20' %}selected{% endif %}>20</option>
+                                    <option value="50" {% if request.GET.show == '50' %}selected{% endif %}>50</option>
+                                </select>
+                            </label>
+                        </form>
+
                     </div>
                 </div>
                 <div class="row g-4">
@@ -250,9 +327,18 @@
                                         <img src="{% static 'img/default.png' %}" alt="No Image">
                                     {% endif %}
                                     <div class="product-label">
-                                        {% if product.is_new %}
-                                            <span class="new">Новинка</span>
+                                        {% if product.status %}
+                                            {% if product.status == 'new' %}
+                                                <span class="status-circle new">Новый</span>
+                                            {% elif product.status == 'excellent' %}
+                                                <span class="status-circle excellent">Отличное состояние</span>
+                                            {% elif product.status == 'defect' %}
+                                                <span class="status-circle defect">Есть дефекты</span>
+                                            {% elif product.status == 'marriage' %}
+                                                <span class="status-circle marriage">На запчасти</span>
+                                            {% endif %}
                                         {% endif %}
+
                                         {% if product.discount %}
                                             <span class="sale">-{{ product.discount }}%</span>
                                         {% endif %}
@@ -279,14 +365,29 @@
                                     <div class="product-rating">
                                     </div>
                                     <div class="product-btns" data-product-id="{{ product.id }}">
-                                        <button class="add-to-wishlist-btn">
-                                            <i class="fa fa-heart-o"></i>
-                                            <span class="tooltipp">Добавить в избранное</span>
-                                        </button>
-                                        <button class="add-to-cart-btn">
-                                            <i class="fa fa-shopping-cart"></i>
-                                            <span class="tooltipp">Добавить в корзину</span>
-                                        </button>
+                                        {% if user.is_authenticated %}
+                                            <button class="add-to-wishlist-btn {% if product in wishlist_items %}in-wishlist{% endif %}">
+                                                <i class="fa {% if product in wishlist_items %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
+                                                <span class="tooltipp">
+                {% if product in wishlist_items %}В избранном{% else %}Добавить в избранное{% endif %}
+            </span>
+                                            </button>
+                                            <button class="add-to-cart-btn">
+                                                <i class="fa fa-shopping-cart"></i>
+                                                <span class="tooltipp">Добавить в корзину</span>
+                                            </button>
+                                        {% else %}
+                                            <button class="add-to-wishlist-btn disabled-btn" disabled
+                                                    title="Только для авторизованных пользователей">
+                                                <i class="fa fa-heart-o"></i>
+                                                <span class="tooltipp">Только для авторизованных пользователей</span>
+                                            </button>
+                                            <button class="add-to-cart-btn disabled-btn" disabled
+                                                    title="Только для авторизованных пользователей">
+                                                <i class="fa fa-shopping-cart"></i>
+                                                <span class="tooltipp">Только для авторизованных пользователей</span>
+                                            </button>
+                                        {% endif %}
                                         <button class="quick-view-btn">
                                             <i class="fa fa-eye"></i>
                                             <span class="tooltipp">Быстрый просмотр</span>
@@ -299,34 +400,6 @@
                     {% empty %}
                         <p>Товары не найдены.</p>
                     {% endfor %}
-                </div>
-                <div id="product-modal" class="modal">
-                    <div class="modal-content">
-                        <span class="close" onclick="closeProductModal()">&times;</span>
-                        <h2 id="product-name"></h2>
-                        <div class="image-carousel">
-                            <img id="product-image" src="" alt="">
-                        </div>
-                        <table id="product-info">
-                            <tr>
-                                <td>Описание:</td>
-                                <td id="product-description"></td>
-                            </tr>
-                            <tr>
-                                <td>Категория:</td>
-                                <td id="product-category"></td>
-                            </tr>
-                            <tr>
-                                <td>Цена:</td>
-                                <td id="product-price"></td>
-                            </tr>
-
-                            <tr>
-                                <td>Старая цена:</td>
-                                <td id="product-old-price"></td>
-                            </tr>
-                        </table>
-                    </div>
                 </div>
                 <div class="store-filter clearfix">
                     <span class="store-qty">Показано {{ products|length }} продуктов</span>

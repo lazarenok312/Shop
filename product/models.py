@@ -75,6 +75,13 @@ class Location(models.Model):
 # Товар
 # ----------------------
 class Product(models.Model):
+    STATUS_CHOICES = [
+        ('new', 'Новый товар'),
+        ('excellent', 'Состояние отличное'),
+        ('defect', 'Есть дефекты'),
+        ('marriage', 'На запчасти'),
+    ]
+
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
@@ -89,7 +96,12 @@ class Product(models.Model):
     price = models.DecimalField("Цена", max_digits=10, decimal_places=2)
     old_price = models.DecimalField("Старая цена", max_digits=10, decimal_places=2, blank=True, null=True)
     discount = models.PositiveIntegerField("Скидка (%)", blank=True, null=True)
-    is_new = models.BooleanField("Новый товар", default=False)
+    status = models.CharField(
+        "Состояние товара",
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='new'
+    )
     is_available = models.BooleanField("В наличии", default=True)
     complectation = models.TextField("Комплектация", blank=True, null=True)
     brand = models.ForeignKey(

@@ -13,7 +13,7 @@
     <link type="text/css" rel="stylesheet" href="{% static 'css/nouislider.min.css' %}"/>
     <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
     <link type="text/css" rel="stylesheet" href="{% static 'css/style.css' %}"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.7.0/distribute/nouislider.min.css">
+    {#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.7.0/distribute/nouislider.min.css">#}
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -77,11 +77,26 @@
         return cookieValue;
     }
 
+    function closeProductModal() {
+        const modal = document.getElementById('product-modal');
+        modal.style.display = "none";
+    }
+
+    // Закрытие кликом вне модалки
+    window.onclick = function (event) {
+        const modal = document.getElementById('product-modal');
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
     document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelectorAll('.add-to-wishlist-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const productId = this.closest('.product-btns').dataset.productId;
+                const icon = this.querySelector('i');
+                const tooltip = this.querySelector('.tooltipp');
+
                 fetch(`/wishlist/add/${productId}/`, {
                     method: 'POST',
                     headers: {'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'XMLHttpRequest'}
@@ -90,7 +105,24 @@
                     .then(data => {
                         if (data.success) {
                             document.querySelector('#wishlist-qty').textContent = data.wishlist_qty;
-                            showNotification(data.action === 'added' ? "Товар добавлен в избранное!" : "Товар удалён из избранного!", data.action === 'added' ? "success" : "error");
+                            showNotification(
+                                data.action === 'added' ? "Товар добавлен в избранное!" : "Товар удалён из избранного!",
+                                data.action === 'added' ? "success" : "error"
+                            );
+
+                            // Изменяем стиль кнопки и иконку
+                            if (data.action === 'added') {
+                                btn.classList.add('in-wishlist');
+                                icon.classList.remove('fa-heart-o');
+                                icon.classList.add('fa-heart');
+                                tooltip.textContent = "В избранном";
+                            } else {
+                                btn.classList.remove('in-wishlist');
+                                icon.classList.remove('fa-heart');
+                                icon.classList.add('fa-heart-o');
+                                tooltip.textContent = "Добавить в избранное";
+                            }
+
                         } else {
                             showNotification(data.error || "Ошибка!", "error");
                         }
@@ -122,12 +154,19 @@
         document.querySelectorAll('.quick-view-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const productId = this.closest('.product-btns').dataset.productId;
+
                 fetch(`/product/quick-view/${productId}/`)
-                    .then(res => res.text())
-                    .then(html => {
-                        const modal = document.getElementById('quick-view-modal');
-                        modal.querySelector('.modal-content').innerHTML = html;
-                        new bootstrap.Modal(modal).show();
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('product-name').textContent = data.name;
+                        document.getElementById('product-description').textContent = data.description;
+                        document.getElementById('product-category').textContent = data.category;
+                        document.getElementById('product-price').textContent = data.price + " сом";
+                        document.getElementById('product-old-price').textContent = data.old_price ? data.old_price + " сом" : "";
+                        document.getElementById('product-image').src = data.image;
+
+                        // открываем модалку
+                        document.getElementById('product-modal').style.display = "block";
                     });
             });
         });
@@ -212,7 +251,6 @@
             });
         }
 
-        // Очистка поиска
         const clearBtn = document.getElementById('clear-search');
         if (clearBtn && searchInput) {
             searchInput.addEventListener('input', () => {
@@ -228,3 +266,30 @@
         }
     });
 </script>
+<div id="product-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProductModal()">&times;</span>
+        <h2 id="product-name"></h2>
+        <div class="image-carousel">
+            <img id="product-image" src="" alt="">
+        </div>
+        <table id="product-info">
+            <tr>
+                <td>Описание:</td>
+                <td id="product-description"></td>
+            </tr>
+            <tr>
+                <td>Категория:</td>
+                <td id="product-category"></td>
+            </tr>
+            <tr>
+                <td>Цена:</td>
+                <td id="product-price"></td>
+            </tr>
+            <tr>
+                <td>Старая цена:</td>
+                <td id="product-old-price"></td>
+            </tr>
+        </table>
+    </div>
+</div>
